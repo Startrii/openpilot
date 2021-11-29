@@ -85,7 +85,7 @@ class CarInterface(CarInterfaceBase):
       ret.mass = CivicParams.MASS
       ret.wheelbase = CivicParams.WHEELBASE
       ret.centerToFront = CivicParams.CENTER_TO_FRONT
-      ret.steerRatio = 15.38  # 10.93 is end-to-end spec
+      ret.steerRatio = 22.15  # 10.93 is end-to-end spec
       if eps_modified:
         # stock request input values:     0x0000, 0x00DE, 0x014D, 0x01EF, 0x0290, 0x0377, 0x0454, 0x0610, 0x06EE
         # stock request output values:    0x0000, 0x0917, 0x0DC5, 0x1017, 0x119F, 0x140B, 0x1680, 0x1680, 0x1680
