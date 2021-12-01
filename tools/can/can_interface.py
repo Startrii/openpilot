@@ -60,9 +60,13 @@ def generate_bytes(hex_string):
 
     return bytes(int_array)
 
-def send_cmd(can_id, extended, data):
-    command = BitArray((int(data * 10)).to_bytes(2, byteorder="little"))
-    body = ('0A0000'+command.hex[0]+command.hex[1]+command.hex[2]+command.hex[3]+'000000')
+def send_cmd(can_id, extended, data, actuator):
+    if actuator == 'acc':
+      command = BitArray((int(data * 65535)).to_bytes(2, byteorder="little"))
+      body = (command.hex[0]+command.hex[1] + command.hex[2]+command.hex[3]+'000100000000')
+    elif actuator == 'steer':
+      command = BitArray((int(data * 10)).to_bytes(2, byteorder="little"))
+      body = ('0A0000'+command.hex[0]+command.hex[1]+command.hex[2]+command.hex[3]+'000000')
     try:
       s = CANSocket(args.interface)
     except OSError as e:
