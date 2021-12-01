@@ -29,7 +29,7 @@ args = parser.parse_args()
 W, H = 1164, 874
 REPEAT_COUNTER = 5
 PRINT_DECIMATION = 100
-STEER_RATIO = 15.
+STEER_RATIO = 22.15
 
 pm = messaging.PubMaster(['roadCameraState', 'sensorEvents', 'can', "gpsLocationExternal"])
 sm = messaging.SubMaster(['carControl','controlsState'])
@@ -187,7 +187,8 @@ def bridge(q):
 
   world_map = world.get_map()
 
-  vehicle_bp = blueprint_library.filter('vehicle.tesla.*')[1]
+  #vehicle_bp = blueprint_library.filter('vehicle.tesla.*')[1]
+  vehicle_bp = blueprint_library.find('vehicle.tesla.cybertruck')
   spawn_points = world_map.get_spawn_points()
   assert len(spawn_points) > args.num_selected_spawn_point, \
     f'''No spawn point {args.num_selected_spawn_point}, try a value between 0 and
@@ -198,20 +199,32 @@ def bridge(q):
   max_steer_angle = vehicle.get_physics_control().wheels[0].max_steer_angle
 
   # make tires less slippery
-  # wheel_control = carla.WheelPhysicsControl(tire_friction=5)
+  wheel_control = carla.WheelPhysicsControl(tire_friction=3.5, max_brake_torque=4000.0, radius=38.3500000, max_steer_angle=35.0)
   physics_control = vehicle.get_physics_control()
-  physics_control.mass = 2326
-  # physics_control.wheels = [wheel_control]*4
-  physics_control.torque_curve = [[20.0, 500.0], [5000.0, 500.0]]
+  physics_control.mass = 9100
+  physics_control.wheels = [wheel_control]*4
+  physics_control.torque_curve = [[20.0, 350.0], [5000.0, 350.0]]
   physics_control.gear_switch_time = 0.0
   vehicle.apply_physics_control(physics_control)
+
+  mass = vehicle.get_physics_control().mass
+  wheels = vehicle.get_physics_control().wheels[0]
+  brake_torque = vehicle.get_physics_control().wheels[0].max_brake_torque
+  friction = vehicle.get_physics_control().wheels[0].tire_friction
+  wheel0 = vehicle.get_physics_control().wheels[0].position
+  wheel1 = vehicle.get_physics_control().wheels[1].position
+  wheel2 = vehicle.get_physics_control().wheels[2].position
+  wheel3 = vehicle.get_physics_control().wheels[3].position
+  print("Vehicle:", physics_control)
+  print("Wheels:", wheels)
 
   blueprint = blueprint_library.find('sensor.camera.rgb')
   blueprint.set_attribute('image_size_x', str(W))
   blueprint.set_attribute('image_size_y', str(H))
   blueprint.set_attribute('fov', '70')
   blueprint.set_attribute('sensor_tick', '0.05')
-  transform = carla.Transform(carla.Location(x=0.8, z=1.13))
+  #transform = carla.Transform(carla.Location(x=0.8, z=1.13))
+  transform = carla.Transform(carla.Location(x=1.2, z=2.13))
   camera = world.spawn_actor(blueprint, transform, attach_to=vehicle)
   camera.listen(cam_callback)
 
