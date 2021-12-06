@@ -2,6 +2,7 @@
 import os
 import math
 from numbers import Number
+import struct
 
 from cereal import car, log
 from common.numpy_fast import clip
@@ -680,6 +681,14 @@ class Controls:
     cc_send.valid = CS.canValid
     cc_send.carControl = CC
     self.pm.send('carControl', cc_send)
+    # Send Desired 'CarControl' value to can
+    desired_dat = [{'address': 0x60, 'dat': struct.pack('ff', CC.actuators.accel, CC.actuators.steeringAngleDeg)}]
+    custom_can = messaging.new_message('sendcan', len(desired_dat))
+    for idx, dat in enumerate(desired_dat):
+      for k, v in dat.items():
+        setattr(custom_can.sendcan[idx], k, v)
+    self.pm.send('sendcan', custom_can)
+      
 
     # copy CarControl to pass to CarInterface on the next iteration
     self.CC = CC
