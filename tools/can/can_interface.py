@@ -90,14 +90,14 @@ def listen_cmd(s, actuator):
 			if (cob_id == 0x063 and actuator == 'acc'):
 				command = (BitArray(uint=data[5], length=8) + BitArray(uint=data[4], length=8))
 				return command.uint/65535.0
-			elif (cob_id == 0x061 and actuator == 'acc'):
+			elif (cob_id == 0x061 and actuator == 'brake'):
 				command = (BitArray(uint=data[5], length=8) + BitArray(uint=data[4], length=8))
 				return command.uint/65535.0
 			elif (cob_id == 0x13F5 and actuator == 'steer'):
 				angel = (BitArray(uint=data[4], length=8)+BitArray(uint=data[3], length=8))
 				return angel.uint/10.0
 			else:
-				return hex(cob_id)
+				return 0
 		return 0
 def parse_args():
 		parser = argparse.ArgumentParser()
