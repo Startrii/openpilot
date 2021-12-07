@@ -383,9 +383,6 @@ def bridge(q):
 
 		if rk.frame%PRINT_DECIMATION == 0:
 			print("frame: ", "engaged:", is_openpilot_engaged, "; throttle: ", round(vc.throttle, 3), "; steer(c/deg): ", round(vc.steer, 3), round(steer_out, 3), "; brake: ", round(vc.brake, 3))
-			print(sm['carControl'].gasDEPRECATED)
-			print(sm['carControl'].brakeDEPRECATED)
-			print(sm['carControl'].steeringTorqueDEPRECATEDDEPRECATED)
 		rk.keep_time()
 
 	# Clean up resources in the opposite order they were created.
