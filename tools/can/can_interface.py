@@ -25,7 +25,7 @@ class CANSocket(object):
 		def bind(self, interface):
 				self.sock.bind((interface,))
 				#self.sock.setsockopt(socket.SOL_CAN_RAW, self.CAN_RAW_FD_FRAMES, 1)
-				can_id, can_mask = 0x063, 0x7FF
+				can_id, can_mask = 0x13F5, 0x7FF
 				can_filter = struct.pack("=II", can_id, can_mask)
 				self.sock.setsockopt(socket.SOL_CAN_RAW, socket.CAN_RAW_FILTER, can_filter)
 

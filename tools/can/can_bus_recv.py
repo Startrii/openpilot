@@ -15,20 +15,26 @@ args = parse_args()
 s = CANSocket(args.interface)
 throttle = 0
 brake = 0
-steer = 0
+steer = 900
 while 1:
+	dat = messaging.new_message('stMCU')
+	dat.stMCU.throttle = throttle
+	dat.stMCU.brake = brake
+	dat.stMCU.steer = steer
+	pm.send('stMCU', dat)
+
 	#sm.update()
 	cob_id, data = s.recv()
-	throttle = float(listen_cmd(s,'acc'))
+	#throttle = float(listen_cmd(s,'acc'))
 	#brake = float(listen_cmd(s,'brake'))
-	#steer = float(listen_cmd(s,'steer'))
+	steer = float(listen_cmd(s,'steer'))
 
 	print("throttle: ", round(throttle, 3), "; steer(motor steps): ", round(steer, 3),	"; brake: ", round(brake, 3))
-	#time.sleep(0.02)
+	time.sleep(0.02)
 
 # in publisher
 	dat = messaging.new_message('stMCU')
 	dat.stMCU.throttle = throttle
-	dat.stMCU.brake = 0.0
-	dat.stMCU.steer = 0.0 
+	dat.stMCU.brake = brake
+	dat.stMCU.steer = steer 
 	pm.send('stMCU', dat)

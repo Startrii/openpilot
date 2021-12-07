@@ -32,7 +32,7 @@ PRINT_DECIMATION = 100
 STEER_RATIO = 22.15
 
 pm = messaging.PubMaster(['roadCameraState', 'sensorEvents', 'can', "gpsLocationExternal"])
-sm = messaging.SubMaster(['carControl','controlsState'])
+sm = messaging.SubMaster(['carControl','controlsState', 'stMCU'])
 
 class VehicleState:
   def __init__(self):
@@ -270,6 +270,8 @@ def bridge(q):
   brake_manual_multiplier = 0.7 #keyboard signal is always 1
   steer_manual_multiplier = 45 * STEER_RATIO  #keyboard signal is always 1
 
+  steer_stmcu = 0
+
 
   while 1:
     # 1. Read the throttle, steer and brake from op or manual controls
@@ -329,6 +331,7 @@ def bridge(q):
       throttle_op = clip(sm['carControl'].actuators.accel/1.6, 0.0, 1.0)
       brake_op = clip(-sm['carControl'].actuators.accel/4.0, 0.0, 1.0)
       steer_op = sm['carControl'].actuators.steeringAngleDeg
+      steer_stmcu = (sm['stMCU'].steer - 900.0)/600.0 * 360.0
 
       throttle_out = throttle_op
       steer_out = steer_op
@@ -364,15 +367,18 @@ def bridge(q):
 
     # --------------Step 2-------------------------------
 
-    steer_carla = steer_out / (max_steer_angle * STEER_RATIO * -1)
+    #steer_carla = steer_out / (max_steer_angle * STEER_RATIO * -1)
+    steer_carla = steer_stmcu / (max_steer_angle * STEER_RATIO * -1)
 
     steer_carla = np.clip(steer_carla, -1,1)
     steer_out = steer_carla * (max_steer_angle * STEER_RATIO * -1)
     old_steer = steer_carla * (max_steer_angle * STEER_RATIO * -1)
 
     vc.throttle = throttle_out/0.6
+    #vc.throttle = sm['stMCU'].throttle
     vc.steer = steer_carla
     vc.brake = brake_out
+    #vc.brake = sm['stMCU'].brake
     vehicle.apply_control(vc)
 
     # --------------Step 3-------------------------------
@@ -380,7 +386,8 @@ def bridge(q):
     speed = math.sqrt(vel.x**2 + vel.y**2 + vel.z**2) # in m/s
     vehicle_state.speed = speed
     vehicle_state.vel = vel
-    vehicle_state.angle = steer_out
+    #vehicle_state.angle = steer_out
+    vehicle_state.angle = steer_stmcu
     vehicle_state.cruise_button = cruise_button
     vehicle_state.is_engaged = is_openpilot_engaged
 
