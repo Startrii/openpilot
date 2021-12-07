@@ -13,8 +13,8 @@ def gen_empty_fingerprint():
 # FIXME: hardcoding honda civic 2016 touring params so they can be used to
 # scale unknown params for other cars
 class CivicParams:
-  MASS = 1326. + STD_CARGO_KG
-  WHEELBASE = 2.70
+  MASS = 9100. + STD_CARGO_KG
+  WHEELBASE = 3.807
   CENTER_TO_FRONT = WHEELBASE * 0.4
   CENTER_TO_REAR = WHEELBASE - CENTER_TO_FRONT
   ROTATIONAL_INERTIA = 2500
