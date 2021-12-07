@@ -17,6 +17,9 @@ from lib.can import can_function
 from selfdrive.car.honda.values import CruiseButtons
 from selfdrive.test.helpers import set_params_enabled
 
+from tools.can.speed_handling import CANsocket
+import struct
+
 parser = argparse.ArgumentParser(description='Bridge between CARLA and openpilot.')
 parser.add_argument('--joystick', action='store_true')
 parser.add_argument('--low_quality', action='store_true')
@@ -161,9 +164,13 @@ def fake_driver_monitoring(exit_event: threading.Event):
     time.sleep(DT_DMON)
 
 def can_function_runner(vs: VehicleState, exit_event: threading.Event):
+  s = CANsocket('vcan0')
+  can_id = 0x60
   i = 0
   while not exit_event.is_set():
-    can_function(pm, vs.speed, vs.angle, i, vs.cruise_button, vs.is_engaged)
+    data = struct.pack('eeB?',  vs.speed, vs.angle, vs.cruise_button, vs.is_engaged)
+    s.send(can_id, data)
+    #can_function(pm, vs.speed, vs.angle, i, vs.cruise_button, vs.is_engaged)
     time.sleep(0.01)
     i+=1
 
