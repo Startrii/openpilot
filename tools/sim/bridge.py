@@ -17,7 +17,7 @@ from lib.can import can_function
 from selfdrive.car.honda.values import CruiseButtons
 from selfdrive.test.helpers import set_params_enabled
 
-from tools.can.speed_handling import CANsocket
+from tools.can.speed_handling import CANSocket
 import struct
 
 parser = argparse.ArgumentParser(description='Bridge between CARLA and openpilot.')
@@ -34,7 +34,7 @@ REPEAT_COUNTER = 5
 PRINT_DECIMATION = 100
 STEER_RATIO = 22.15
 
-pm = messaging.PubMaster(['roadCameraState', 'sensorEvents', 'can', "gpsLocationExternal"])
+pm = messaging.PubMaster(['roadCameraState', 'sensorEvents', "gpsLocationExternal"])
 sm = messaging.SubMaster(['carControl','controlsState'])
 
 class VehicleState:
@@ -164,7 +164,7 @@ def fake_driver_monitoring(exit_event: threading.Event):
     time.sleep(DT_DMON)
 
 def can_function_runner(vs: VehicleState, exit_event: threading.Event):
-  s = CANsocket('vcan0')
+  s = CANSocket('vcan0')
   can_id = 0x60
   i = 0
   while not exit_event.is_set():
