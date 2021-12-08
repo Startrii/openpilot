@@ -109,24 +109,27 @@ def can_function(pm, speed, angle, idx, cruise_button, is_engaged):
 
     pm.send('can', can_list_to_can_capnp(msg))
 
+def main():
+    interface = 'vcan0'
+    pm = messaging.PubMaster(['can'])
+    i = 0
 
-interface = 'vcan0'
-pm = messaging.PubMaster(['can'])
-i = 0
+    try:
+        s = CANSocket(interface)
+    except OSError as e:
+        sys.stderr.write('Could not send on interface {0}\n'.format('vcan0'))
+        sys.exit(e.errno)
 
-try:
-    s = CANSocket(interface)
-except OSError as e:
-    sys.stderr.write('Could not send on interface {0}\n'.format('vcan0'))
-    sys.exit(e.errno)
-
-while True:
-    can_id, data = s.recv()
-    print(data)
-    if can_id == 0x60:
-        speed, angle, cruise_button, is_engaged = struct.pack('eeB?', data)
+    while True:
+        can_id, data = s.recv()
+        print(data)
+        if can_id == 0x60:
+            speed, angle, cruise_button, is_engaged = struct.unpack('eeB?', data)
         print(speed, angle, cruise_button, is_engaged)
-    can_function(pm, speed, angle, i, cruise_button, is_engaged)
-    # can_function(pm, vs.speed, vs.angle, i, vs.cruise_button, vs.is_engaged)
-    time.sleep(0.01)
-    i += 1
+        can_function(pm, speed, angle, i, cruise_button, is_engaged)
+        # can_function(pm, vs.speed, vs.angle, i, vs.cruise_button, vs.is_engaged)
+        time.sleep(0.01)
+        i += 1
+
+if __name__ == '__main__':
+    main()
