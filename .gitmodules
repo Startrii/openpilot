@@ -13,3 +13,6 @@
 [submodule "rednose_repo"]
 	path = rednose_repo
 	url = ../../commaai/rednose.git
+[submodule "tools/startrii_tools"]
+	path = tools/startrii_tools
+	url = git@github.com:Startrii/openpilot_tools.git
