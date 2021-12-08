@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import cereal.messaging as messaging
 from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
@@ -18,41 +19,7 @@ from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
 from bitstring import BitArray
-
-
-class CANSocket(object):
-
-    FORMAT = "<IB3x8s"
-    FD_FORMAT = "<IB3x64s"
-    CAN_RAW_FD_FRAMES = 5
-
-    def __init__(self, interface=None):
-        self.sock = socket.socket(socket.PF_CAN, socket.SOCK_RAW,
-                                  socket.CAN_RAW)
-        if interface is not None:
-            self.bind(interface)
-
-    def bind(self, interface):
-        self.sock.bind((interface, ))
-        self.sock.setsockopt(socket.SOL_CAN_RAW, self.CAN_RAW_FD_FRAMES, 1)
-
-    def send(self, cob_id, data, flags=0):
-        cob_id = cob_id | flags
-        can_pkt = struct.pack(self.FORMAT, cob_id, len(data), data)
-        self.sock.send(can_pkt)
-        # time.sleep(0.02)
-
-    def recv(self, flags=0):
-        can_pkt = self.sock.recv(72)
-
-        if len(can_pkt) == 16:
-            cob_id, length, data = struct.unpack(self.FORMAT, can_pkt)
-        else:
-            cob_id, length, data = struct.unpack(self.FD_FORMAT, can_pkt)
-
-        cob_id &= socket.CAN_EFF_MASK
-        return (cob_id, data[:length])
-
+import can
 
 def can_function(pm, speed, angle, idx, cruise_button, is_engaged):
     packer = CANPacker("honda_civic_touring_2016_can_generated")
@@ -110,26 +77,22 @@ def can_function(pm, speed, angle, idx, cruise_button, is_engaged):
     pm.send('can', can_list_to_can_capnp(msg))
 
 def main():
-    interface = 'vcan0'
     pm = messaging.PubMaster(['can'])
+
     i = 0
 
-    try:
-        s = CANSocket(interface)
-    except OSError as e:
-        sys.stderr.write('Could not send on interface {0}\n'.format('vcan0'))
-        sys.exit(e.errno)
-
-    while True:
-        can_id, data = s.recv()
-        print(data)
-        if can_id == 0x60:
-            speed, angle, cruise_button, is_engaged = struct.unpack('eeB?', data)
-        print(speed, angle, cruise_button, is_engaged)
-        can_function(pm, speed, angle, i, cruise_button, is_engaged)
-        # can_function(pm, vs.speed, vs.angle, i, vs.cruise_button, vs.is_engaged)
-        time.sleep(0.01)
-        i += 1
-
+    with can.interface.Bus(bustype='socketcan', channel='vcan0') as bus:
+        try:
+            while True:
+                msg = bus.recv()
+                print(msg)
+                if msg.arbitration_id == 0x60:
+                    speed, angle, cruise_button, is_engaged = struct.unpack('eeB?', msg.data)
+                print(speed, angle, cruise_button, is_engaged)
+                can_function(pm, speed, angle, i, cruise_button, is_engaged)
+                time.sleep(0.01)
+                i += 1
+        except KeyboardInterrupt:
+            pass
 if __name__ == '__main__':
     main()
