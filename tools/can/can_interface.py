@@ -22,12 +22,24 @@ class CANSocket(object):
 				if interface is not None:
 						self.bind(interface)
 
-		def bind(self, interface):
+		def bind(self, interface, **kwargs):
 				self.sock.bind((interface,))
 				#self.sock.setsockopt(socket.SOL_CAN_RAW, self.CAN_RAW_FD_FRAMES, 1)
-				can_id, can_mask = 0x13F5, 0x7FF
-				can_filter = struct.pack("=II", can_id, can_mask)
-				self.sock.setsockopt(socket.SOL_CAN_RAW, socket.CAN_RAW_FILTER, can_filter)
+				#can_id, can_mask = 0x061, 0x7FF
+				#can_filter = struct.pack("=II", can_id, can_mask)
+				#self.sock.setsockopt(socket.SOL_CAN_RAW, socket.CAN_RAW_FILTER, can_filter)
+				kwargs['can_filters'] = [{'can_id': 0x063, 'can_mask': 0x7FF},
+																 {'can_id': 0x061, 'can_mask': 0x7FF}]
+				if 'can_filters' in kwargs and len(kwargs['can_filters']) > 0:
+					can_filter_fmt = "={}I".format(2 * len(kwargs['can_filters']))
+					filter_data = []
+					for can_filter in kwargs['can_filters']:
+						filter_data.append(can_filter['can_id'])
+						filter_data.append(can_filter['can_mask'])
+
+					self.sock.setsockopt(socket.SOL_CAN_RAW,
+							socket.CAN_RAW_FILTER,
+							struct.pack(can_filter_fmt, *filter_data),)
 
 		def send(self, cob_id, data, flags=0):
 				cob_id = cob_id | flags
