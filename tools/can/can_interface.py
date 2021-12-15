@@ -16,27 +16,37 @@ class CANSocket(object):
 		FD_FORMAT = "<IB3x64s"
 		CAN_RAW_FD_FRAMES = 5
 
-		def __init__(self, interface=None):
+		def __init__(self, interface=None, filters=None):
 				self.sock = socket.socket(
 						socket.PF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
 				if interface is not None:
-						self.bind(interface)
+						self.bind(interface, filters)
 
-		def bind(self, interface, **kwargs):
+		def bind(self, interface, filters):
 				self.sock.bind((interface,))
 				#self.sock.setsockopt(socket.SOL_CAN_RAW, self.CAN_RAW_FD_FRAMES, 1)
-				#can_id, can_mask = 0x061, 0x7FF
-				#can_filter = struct.pack("=II", can_id, can_mask)
-				#self.sock.setsockopt(socket.SOL_CAN_RAW, socket.CAN_RAW_FILTER, can_filter)
-				kwargs['can_filters'] = [{'can_id': 0x063, 'can_mask': 0x7FF},
-																 {'can_id': 0x061, 'can_mask': 0x7FF}]
-				if 'can_filters' in kwargs and len(kwargs['can_filters']) > 0:
-					can_filter_fmt = "={}I".format(2 * len(kwargs['can_filters']))
+				filter_data = []
+				can_id = 0
+				can_mask = 0
+				if filters != None:
+					print('we have filter/s', filters)
+					for filt in filters:
+						if ':' in filt:
+							_ = filters.split(":")
+							can_id, can_mask = int(_[0], base=16), int(_[1], base=16)
+							print('can_id', hex(can_id), 'can_mask', hex(can_mask))
+						elif "~" in filt:
+							can_id, can_mask_filt = filt.split("~")
+							can_id = int(can_id, base=16) | 0x20000000    # CAN_INV_FILTER
+							can_mask_filt = int(can_mask, base=16) & socket.CAN_ERR_FLAG
+
+				can_filters = [{'can_id': can_id, 'can_mask': can_mask}]
+				if len(can_filters) > 0:
+					can_filter_fmt = "={}I".format(2 * len(can_filters))
 					filter_data = []
-					for can_filter in kwargs['can_filters']:
+					for can_filter in can_filters:
 						filter_data.append(can_filter['can_id'])
 						filter_data.append(can_filter['can_mask'])
-
 					self.sock.setsockopt(socket.SOL_CAN_RAW,
 							socket.CAN_RAW_FILTER,
 							struct.pack(can_filter_fmt, *filter_data),)
@@ -108,8 +118,6 @@ def listen_cmd(s, actuator):
 			elif (cob_id == 0x13F5 and actuator == 'steer'):
 				angel = (BitArray(uint=data[4], length=8)+BitArray(uint=data[3], length=8))
 				return angel.uint/10.0
-			else:
-				return 0
 		return 0
 def parse_args():
 		parser = argparse.ArgumentParser()
