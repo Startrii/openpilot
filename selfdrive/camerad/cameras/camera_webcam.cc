@@ -19,8 +19,8 @@
 #include "selfdrive/common/util.h"
 
 // id of the video capturing device
-const int ROAD_CAMERA_ID = util::getenv("ROADCAM_ID", 1);
-const int DRIVER_CAMERA_ID = util::getenv("DRIVERCAM_ID", 2);
+const int ROAD_CAMERA_ID = util::getenv("ROADCAM_ID", 4);
+const int DRIVER_CAMERA_ID = util::getenv("DRIVERCAM_ID", 0);
 
 #define FRAME_WIDTH  1164
 #define FRAME_HEIGHT 874
@@ -100,16 +100,22 @@ static void road_camera_thread(CameraState *s) {
   set_thread_name("webcam_road_camera_thread");
 
   cv::VideoCapture cap_road(ROAD_CAMERA_ID, cv::CAP_V4L2); // road
-  cap_road.set(cv::CAP_PROP_FRAME_WIDTH, 853);
-  cap_road.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+  cap_road.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+  cap_road.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
   cap_road.set(cv::CAP_PROP_FPS, s->fps);
   cap_road.set(cv::CAP_PROP_AUTOFOCUS, 0); // off
   cap_road.set(cv::CAP_PROP_FOCUS, 0); // 0 - 255?
   // cv::Rect roi_rear(160, 0, 960, 720);
 
   // transforms calculation see tools/webcam/warp_vis.py
-  float ts[9] = {1.50330396, 0.0, -59.40969163,
+  /*
+	float ts[9] = {1.50330396, 0.0, -59.40969163,
                   0.0, 1.50330396, 76.20704846,
+									0.0, 0.0, 1.0};
+									*/
+	//For c930 1920*1080
+	float ts[9] = { 0.61820652, 0.0,  186.34782609,
+                  0.0, 0.61820652, 214.44565217,
                   0.0, 0.0, 1.0};
   // if camera upside down:
   // float ts[9] = {-1.50330396, 0.0, 1223.4,
