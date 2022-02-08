@@ -8,7 +8,7 @@ from selfdrive.modeld.constants import T_IDXS
 # kph
 V_CRUISE_MAX = 135
 V_CRUISE_MIN = 8
-V_CRUISE_ENABLE_MIN = 40
+V_CRUISE_ENABLE_MIN = 30
 
 LAT_MPC_N = 16
 LON_MPC_N = 32
@@ -31,9 +31,9 @@ CRUISE_INTERVAL_SIGN = {
 
 
 class MPC_COST_LAT:
-  PATH = 1.0
-  HEADING = 1.0
-  STEER_RATE = 1.0
+  PATH = 7.3
+  HEADING = 2.1
+  STEER_RATE = 0.7
 
 
 class MPC_COST_LONG:
